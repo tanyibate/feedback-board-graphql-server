@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator typegraphql {
+  provider = "typegraphql-prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Feedback {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  title        String    @db.VarChar(255)
+  detail       String
+  category     String
+  updateStatus String
+  upvotes      UpVote[]
+  comments     Comment[]
+}
+
+model Comment {
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  content       String
+  feedback      Feedback  @relation(fields: [feedbackId], references: [id])
+  feedbackId    Int
+  commentId     Int?
+  parentComment Comment?  @relation("subcomments", fields: [commentId], references: [id])
+  comments      Comment[] @relation("subcomments")
+  commenter     User      @relation(fields: [userId], references: [id])
+  userId        Int
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  fullName  String
+  username  String    @unique
+  commenter Comment[]
+  UpVote    UpVote[]
+  imageURL  String
+}
+
+model UpVote {
+  id         Int       @id @default(autoincrement())
+  upvoter    User      @relation(fields: [userId], references: [id])
+  userId     Int
+  Feedback   Feedback? @relation(fields: [feedbackId], references: [id])
+  feedbackId Int?
+  dummy      String?
+
+}
